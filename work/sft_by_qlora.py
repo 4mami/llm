@@ -1,5 +1,5 @@
 import torch
-from datasets import load_dataset
+from datasets import load_dataset, DatasetDict
 import bitsandbytes as bnb
 from transformers import (
     AutoTokenizer, 
@@ -31,6 +31,10 @@ def generate_text_field(data):
     return {"text": full_prompt}
 
 dataset = load_dataset(DATASET_ID)
+dataset = DatasetDict({
+    split: dataset[split].select(range(1500)) 
+    for split in dataset.keys()
+})
 train_dataset = dataset.map(generate_text_field)
 # 学習データの構造次第では意図した学習が行われない可能性があるため、不要なフィールドを削除
 train_dataset = train_dataset.remove_columns(['output', 'index', 'input', 'category', 'instruction'])
