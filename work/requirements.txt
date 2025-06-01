@@ -1,0 +1,10 @@
+torch
+torchtext
+transformers[sentencepiece]==4.51.3
+bitsandbytes
+peft
+trl
+datasets
+tensorboard
+pandas
+openpyxl
