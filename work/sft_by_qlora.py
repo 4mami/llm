@@ -1,3 +1,4 @@
+import argparse
 import torch
 from datasets import load_dataset, DatasetDict
 import bitsandbytes as bnb
@@ -21,6 +22,10 @@ PROMPT_FORMAT = """<start_of_turn>user
 <end_of_turn>
 """
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--sample_size', type=int, default=2500, help='Number of samples to use from dataset')
+args = parser.parse_args()
+
 def generate_text_field(data):
     system = "あなたは優秀なアシスタントです。指示に対して適切な回答を行なってください。"
 
@@ -32,7 +37,7 @@ def generate_text_field(data):
 
 dataset = load_dataset(DATASET_ID)
 dataset = DatasetDict({
-    split: dataset[split].select(range(1500)) 
+    split: dataset[split].select(range(args.sample_size)) 
     for split in dataset.keys()
 })
 train_dataset = dataset.map(generate_text_field)
