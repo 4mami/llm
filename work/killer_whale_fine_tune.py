@@ -2,8 +2,9 @@
 #  https://zenn.dev/yumefuku/articles/llm-finetuning-qlora
 #  https://note.com/noa813/n/n1109efc21ee5
 
+import argparse
 import torch
-from datasets import load_dataset, DatasetDict
+from datasets import load_dataset
 import bitsandbytes as bnb
 from transformers import (
     AutoTokenizer, 
@@ -24,6 +25,11 @@ PROMPT_FORMAT = """<start_of_turn>user
 {output}
 <end_of_turn>
 """
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--log_dir", default="./logs/train_logs")
+parser.add_argument("--output_dir", default="./trained_models/nyan_Adapter")
+args = parser.parse_args()
 
 def generate_text_field(data):
     system = "あなたは優秀なアシスタントです。指示に対して適切な回答を行なってください。"
@@ -93,7 +99,7 @@ Lora_config = LoraConfig(
 )
 
 training_arguments = SFTConfig(
-    output_dir="./train_logs",
+    output_dir=args.log_dir,
     fp16=True,
     logging_strategy='epoch', # 各エポックごとにログを保存（デフォルトは"steps"）
     save_strategy='epoch', # 各エポックごとにチェックポイントを保存（デフォルトは"steps"）
@@ -126,4 +132,4 @@ for name, module in trainer.model.named_modules():
         module = module.to(torch.float32)
 
 trainer.train()
-trainer.model.save_pretrained("./nyan_Adapter")
+trainer.model.save_pretrained(args.output_dir)
