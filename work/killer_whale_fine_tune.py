@@ -1,4 +1,7 @@
-import argparse
+# 参考にした記事:
+#  https://zenn.dev/yumefuku/articles/llm-finetuning-qlora
+#  https://note.com/noa813/n/n1109efc21ee5
+
 import torch
 from datasets import load_dataset, DatasetDict
 import bitsandbytes as bnb
@@ -22,10 +25,6 @@ PROMPT_FORMAT = """<start_of_turn>user
 <end_of_turn>
 """
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--sample_size', type=int, default=2500, help='Number of samples to use from dataset')
-args = parser.parse_args()
-
 def generate_text_field(data):
     system = "あなたは優秀なアシスタントです。指示に対して適切な回答を行なってください。"
 
@@ -36,10 +35,6 @@ def generate_text_field(data):
     return {"text": full_prompt}
 
 dataset = load_dataset(DATASET_ID)
-dataset = DatasetDict({
-    split: dataset[split].select(range(args.sample_size)) 
-    for split in dataset.keys()
-})
 train_dataset = dataset.map(generate_text_field)
 # 学習データの構造次第では意図した学習が行われない可能性があるため、不要なフィールドを削除
 train_dataset = train_dataset.remove_columns(['output', 'index', 'input', 'category', 'instruction'])
