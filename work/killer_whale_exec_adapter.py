@@ -9,7 +9,7 @@ from transformers import AutoTokenizer
 MODEL_ID = "DataPilot/ArrowPro-7B-KillerWhale"
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--adapter_path', default='./nyan_Adapter_full_sample')
+parser.add_argument('--adapter_path', default='./trained_models/nyan_Adapter_full_sample')
 args = parser.parse_args()
 
 model = AutoPeftModelForCausalLM.from_pretrained(
@@ -21,7 +21,7 @@ model = AutoPeftModelForCausalLM.from_pretrained(
 tokenizer = AutoTokenizer.from_pretrained(
     pretrained_model_name_or_path=MODEL_ID, 
 )
-tokenizer.chat_template = "{% if not add_generation_prompt is defined %}{% set add_generation_prompt = false %}{% endif %}{% for message in messages %}{{'<|im_start|>' + message['role'] + '\n' + message['content'] + '<|im_end|>' + '\n'}}{% endfor %}{% if add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}" # todo 訓練時と同じテンプレートを設定
+tokenizer.chat_template = "{{ bos_token }}{% if messages[0]['role'] == 'system' %}{{ raise_exception('System role not supported') }}{% endif %}{% for message in messages %}{% if (message['role'] == 'user') != (loop.index0 % 2 == 0) %}{{ raise_exception('Conversation roles must alternate user/assistant/user/assistant/...') }}{% endif %}{% if (message['role'] == 'assistant') %}{% set role = 'model' %}{% else %}{% set role = message['role'] %}{% endif %}{{ '<start_of_turn>' + role + '\n' + message['content'] | trim + '<end_of_turn>\n' }}{% endfor %}{% if add_generation_prompt %}{{'<start_of_turn>model\n'}}{% endif %}"
 
 # パディングトークンが設定されていない場合、EOSトークンを設定
 if tokenizer.pad_token is None:
