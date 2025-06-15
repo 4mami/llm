@@ -28,7 +28,7 @@ PROMPT_FORMAT = """<start_of_turn>user
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--log_dir", default="./logs/train_logs")
-parser.add_argument("--output_dir", default="./trained_models/nyan_Adapter")
+parser.add_argument("--output_dir", default="./trained_models/nyan_Adapter_full_sample")
 args = parser.parse_args()
 
 def generate_text_field(data):
