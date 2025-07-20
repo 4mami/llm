@@ -2,6 +2,7 @@
 #  https://zenn.dev/yumefuku/articles/llm-finetuning-qlora
 
 import argparse
+import time
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 MODEL_ID = "DataPilot/ArrowPro-7B-KillerWhale"
@@ -26,7 +27,9 @@ if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
 # パディングを右側に設定(fp16を使う際のオーバーフロー対策)
 tokenizer.padding_side = "right"
+
 model.generation_config.pad_token_id = tokenizer.pad_token_id
+model.eval()
 
 conversation_history = []
 while True:
@@ -34,6 +37,7 @@ while True:
     if user_input.lower() == 'exit':
         break
 
+    start_time = time.time()
     conversation_history.append({"role": "user", "content": user_input})
     prompt = tokenizer.apply_chat_template(
         conversation=conversation_history,
@@ -56,4 +60,5 @@ while True:
     response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
 
     print("回答:", response)
+    print(f"回答時間: {time.time() - start_time} 秒")
     conversation_history.append({"role": "assistant", "content": response})
