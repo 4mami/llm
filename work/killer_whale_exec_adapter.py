@@ -28,6 +28,7 @@ if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
 # パディングを右側に設定(fp16を使う際のオーバーフロー対策)
 tokenizer.padding_side = "right"
+model.generation_config.pad_token_id = tokenizer.pad_token_id
 
 question_list = [
     "名前を教えてください",

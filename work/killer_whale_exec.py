@@ -9,6 +9,11 @@ model = AutoModelForCausalLM.from_pretrained(
   "DataPilot/ArrowPro-7B-KillerWhale",
   torch_dtype="auto",
 )
+
+if tokenizer.pad_token is None:
+    tokenizer.pad_token = tokenizer.eos_token
+model.generation_config.pad_token_id = tokenizer.pad_token_id
+
 model.eval()
 print("Model loaded ", datetime.datetime.now())
 
@@ -37,14 +42,16 @@ while True:
     }
     prompt = build_prompt(**user_inputs)
 
-    input_ids = tokenizer.encode(
+    inputs = tokenizer(
         prompt, 
         add_special_tokens=True, 
         return_tensors="pt"
-    )
+    ).to(device=model.device)
+    input_ids = inputs["input_ids"]
 
     tokens = model.generate(
-        input_ids.to(device=model.device),
+        input_ids,
+        attention_mask=inputs["attention_mask"],
         max_new_tokens=500,
         temperature=1,
         top_p=0.95,
