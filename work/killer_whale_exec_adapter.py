@@ -2,6 +2,7 @@
 #  https://zenn.dev/yumefuku/articles/llm-finetuning-qlora
 
 import argparse
+import time
 import torch
 from peft import AutoPeftModelForCausalLM
 from transformers import AutoTokenizer
@@ -28,24 +29,20 @@ if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
 # パディングを右側に設定(fp16を使う際のオーバーフロー対策)
 tokenizer.padding_side = "right"
+
 model.generation_config.pad_token_id = tokenizer.pad_token_id
+model.eval()
 
-question_list = [
-    "名前を教えてください",
-    "日本の首都はどこですか", 
-    "ジョークを言ってください", 
-    "東北の観光地について教えてください" 
-]
+conversation_history = []
+while True:
+    user_input = input("質問: ")
+    if user_input.lower() == 'exit':
+        break
 
-for i, question in enumerate(question_list, 1):
-    print(f"\nchat_{i}----------------------------------------------------")
-    print(f"質問: {question}")
-
-    messages = [
-        {"role": "user", "content": question}
-    ]
+    start_time = time.time()
+    conversation_history.append({"role": "user", "content": user_input})
     prompt = tokenizer.apply_chat_template(
-        messages,
+        conversation=conversation_history,
         tokenize=False,
         add_generation_prompt=True
     )
@@ -64,5 +61,6 @@ for i, question in enumerate(question_list, 1):
 
     response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
 
-    print(f"回答: {response}")
-    print("----------------------------------------------------------")
+    print("回答:", response)
+    print(f"回答時間: {time.time() - start_time} 秒")
+    conversation_history.append({"role": "assistant", "content": response})
