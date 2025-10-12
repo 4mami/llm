@@ -12,3 +12,11 @@ services:
         reservations:
           devices:
             - capabilities: [gpu]
+    ports:
+      - '8000:8000'
+    networks:
+      - external
+
+networks:
+  external:
+    external: true
